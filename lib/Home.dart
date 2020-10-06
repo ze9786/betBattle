@@ -1,7 +1,9 @@
 import 'package:bet_battle/Bet.dart';
+import 'package:bet_battle/Records.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Home extends StatefulWidget {
@@ -19,13 +21,31 @@ class _HomeState extends State<Home> {
   static const color = const Color(0xff3BBEFF);
   static const color1 = const Color(0xff3E80FB);
   static const color2 = const Color(0xff316FE5);
+  int counterZ = 0;
+  int counterS = 0;
 
   Future _setData(Bet bet) async {
-    FirebaseFirestore.instance.collection('bets').add({
+    FirebaseFirestore.instance
+        .collection('bets')
+        .doc(DateTime.now().toString())
+        .set({
       'title': bet.title,
       'zelina': bet.zelina,
       'stephen': bet.stephen,
       'winner': '?',
+    });
+  }
+
+  Future _setRecord(Bet bet) async {
+    FirebaseFirestore.instance
+        .collection('records')
+        .doc(DateTime.now().toString())
+        .set({
+      'title': bet.title,
+      'zelina': bet.zelina,
+      'stephen': bet.stephen,
+      'winner': bet.winner,
+      'paid': false
     });
   }
 
@@ -39,6 +59,13 @@ class _HomeState extends State<Home> {
     });
   }
 
+  Future _deleteData(DocumentSnapshot documentSnapshot) async {
+    FirebaseFirestore.instance
+        .collection('bets')
+        .doc(documentSnapshot.id)
+        .delete();
+  }
+
   // @override
   // void initState() {
   //   for (int i = 0; i < dropdownValue.length; i++) {
@@ -49,44 +76,113 @@ class _HomeState extends State<Home> {
   TextEditingController controller = TextEditingController();
   final FocusNode focusNode = FocusNode();
 
+  @override
+  void initState() {
+    counterS = countWin('Stephen');
+    counterZ = countWin('Zelina');
+    print(counterZ);
+    super.initState();
+  }
+
+  int countWin(String name) {
+    var snapshots = FirebaseFirestore.instance.collection('bets').snapshots();
+    int counter = 0;
+    snapshots.forEach((snapshot) {
+      for (int i = 0; i < snapshot.docs.length; i++) {
+        // snapshot.docs.forEach((element) {
+        print(snapshot.docs[i].data().values.elementAt(1));
+        if (snapshot.docs[i].data().values.elementAt(1) == name) ++counter;
+        if (i == snapshot.docs.length - 1) return counter;
+      }
+    });
+    return counter;
+  }
+
   Widget buildItem(BuildContext context, DocumentSnapshot document, int index) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Container(width: 100, child: Text(document.get('title'))),
-        Text(document.get('zelina') ? "Yes" : "No"),
-        Text(document.get('stephen') ? "Yes" : "No"),
-        DropdownButton(
-          value: dropdownValue[index].toString() ?? '?',
-          icon: Icon(Icons.arrow_downward),
-          iconSize: 24,
-          elevation: 16,
-          style: TextStyle(color: color1),
-          underline: Container(
-            height: 2,
-            color: color1,
-          ),
-          onChanged: (String newValue) {
-            setState(() {
-              dropdownValue[index] = newValue;
-              _updateData(document, index, newValue);
-            });
+    return Slidable(
+      actionPane: SlidableDrawerActionPane(),
+      actionExtentRatio: 0.25,
+      secondaryActions: <Widget>[
+        IconSlideAction(
+          caption: 'Move',
+          color: color1,
+          icon: Icons.move_to_inbox,
+          onTap: () {
+            _deleteData(document);
+            _setRecord(Bet(
+                title: document.get('title'),
+                zelina: document.get('zelina'),
+                stephen: document.get('stephen'),
+                winner: document.get('winner')));
           },
-          items: <String>['?', 'Zelina', 'Stephen']
-              .map<DropdownMenuItem<String>>((String value) {
-            return DropdownMenuItem<String>(
-              value: value,
-              child: Text(value),
-            );
-          }).toList(),
-        )
+        ),
+        IconSlideAction(
+          caption: 'Delete',
+          color: Colors.red,
+          icon: Icons.delete,
+          onTap: () => _deleteData(document),
+        ),
       ],
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Container(width: 100, child: Text(document.get('title'))),
+          Text(document.get('zelina') ? "Yes" : "No"),
+          Text(document.get('stephen') ? "Yes" : "No"),
+          DropdownButton(
+            value: dropdownValue[index].toString() ?? '?',
+            icon: Icon(Icons.arrow_downward),
+            iconSize: 24,
+            elevation: 16,
+            style: TextStyle(color: color1),
+            underline: Container(
+              height: 2,
+              color: color1,
+            ),
+            onChanged: (String newValue) {
+              setState(() {
+                dropdownValue[index] = newValue;
+                _updateData(document, index, newValue);
+              });
+            },
+            items: <String>['?', 'Zelina', 'Stephen']
+                .map<DropdownMenuItem<String>>((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(value),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: Drawer(
+        child: ListView(
+          children: [
+            DrawerHeader(child: Text("hihi")),
+            ListTile(
+              leading: Icon(Icons.home),
+              title: Text('Home'),
+              onTap: () {
+                Navigator.push(
+                    context, MaterialPageRoute(builder: (_) => Home()));
+              },
+            ),
+            ListTile(
+                leading: Icon(Icons.move_to_inbox),
+                title: Text('Records'),
+                onTap: () {
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (_) => RecordScreen()));
+                }),
+          ],
+        ),
+      ),
       appBar: AppBar(
         title: Text("Bet details"),
         // leading: FlatButton(
@@ -133,6 +229,8 @@ class _HomeState extends State<Home> {
                                       ),
                                     );
                                   } else {
+                                    if (dropdownValue != null)
+                                      dropdownValue.clear();
                                     for (int i = 0;
                                         i < snapshot.data.documents.length;
                                         i++) {
@@ -140,6 +238,8 @@ class _HomeState extends State<Home> {
                                               .data.documents[i]
                                               .get('winner') ??
                                           '?');
+                                      print(snapshot.data.documents[i]
+                                          .get('winner'));
                                     }
                                     return ListView.separated(
                                       separatorBuilder: (context, int) =>
@@ -163,6 +263,14 @@ class _HomeState extends State<Home> {
                 Container(
                   height: 30,
                   color: Colors.green[100],
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      //TODO: counter for the bet wins
+                      Text('Zelina: '),
+                      Text('Stephen: ')
+                    ],
+                  ),
                 ),
                 Row(
                   children: [
@@ -252,10 +360,12 @@ class _HomeState extends State<Home> {
                               _showDialog();
                             else {
                               bets.add(Bet(
-                                title: title,
-                                zelina: dropdownValueZ == "Yes" ? true : false,
-                                stephen: dropdownValueS == "Yes" ? true : false,
-                              ));
+                                  title: title,
+                                  zelina:
+                                      dropdownValueZ == "Yes" ? true : false,
+                                  stephen:
+                                      dropdownValueS == "Yes" ? true : false,
+                                  winner: '?'));
                               //add to cloud firestore
                               _setData(Bet(
                                   title: title,
