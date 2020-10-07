@@ -9,15 +9,31 @@ class RecordScreen extends StatefulWidget {
 }
 
 class _RecordScreenState extends State<RecordScreen> {
+  Future _updateRecord(DocumentSnapshot doc, bool value) async {
+    FirebaseFirestore.instance.collection('records').doc(doc.id).set({
+      'title': doc.get('title'),
+      'zelina': doc.get('zelina'),
+      'stephen': doc.get('stephen'),
+      'winner': doc.get('winner'),
+      'paid': value
+    });
+  }
+
   Widget buildItem(DocumentSnapshot document) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
-        Container(width: 50, child: Text(document.get('title'))),
+        Container(width: 70, child: Text(document.get('title'))),
         Text(document.get('zelina') ? "Yes" : "No"),
         Text(document.get('stephen') ? "Yes" : "No"),
         Text(document.get('winner')),
-        Text(document.get('paid').toString())
+        Checkbox(
+            value: document.get('paid'),
+            onChanged: (bool newValue) {
+              setState(() {
+                _updateRecord(document, newValue);
+              });
+            })
       ],
     );
   }
@@ -62,7 +78,7 @@ class _RecordScreenState extends State<RecordScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 Container(
-                  width: 70,
+                  width: 50,
                   child: Text('Title'),
                 ),
                 Text('Zelina'),
@@ -74,29 +90,26 @@ class _RecordScreenState extends State<RecordScreen> {
             Divider(
               thickness: 2,
             ),
-            Expanded(
-              child: StreamBuilder(
-                stream: FirebaseFirestore.instance
-                    .collection('records')
-                    .snapshots(),
-                builder: (context, snapshot) {
-                  if (!snapshot.hasData) {
-                    return Center(
-                      child: CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                            Theme.of(context).primaryColor),
-                      ),
-                    );
-                  } else {
-                    return ListView.separated(
-                        shrinkWrap: true,
-                        itemBuilder: (context, index) =>
-                            buildItem(snapshot.data.documents[index]),
-                        separatorBuilder: (context, int) => Divider(),
-                        itemCount: snapshot.data.documents.length ?? 0);
-                  }
-                },
-              ),
+            StreamBuilder(
+              stream:
+                  FirebaseFirestore.instance.collection('records').snapshots(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return Center(
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                          Theme.of(context).primaryColor),
+                    ),
+                  );
+                } else {
+                  return ListView.separated(
+                      shrinkWrap: true,
+                      itemBuilder: (context, index) =>
+                          buildItem(snapshot.data.documents[index]),
+                      separatorBuilder: (context, int) => Divider(),
+                      itemCount: snapshot.data.documents.length ?? 0);
+                }
+              },
             )
           ],
         ),
