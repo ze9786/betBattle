@@ -1,3 +1,4 @@
+import 'package:bet_battle/MyDrawer.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
@@ -19,11 +20,35 @@ class _RecordScreenState extends State<RecordScreen> {
     });
   }
 
+  @override
+  void initState() {
+    print(countWin('Zelina'));
+  }
+
+  int countWin(String name) {
+    var snapshots =
+        FirebaseFirestore.instance.collection('records').snapshots();
+    List<String> counter = new List();
+    snapshots.forEach((snapshot) {
+      for (int i = 0; i < snapshot.docs.length; i++) {
+        // snapshot.docs.forEach((element) {
+        if (snapshot.docs[i].data().values.elementAt(1) == name)
+          counter.add(name);
+        // if (i == snapshot.docs.length - 1) {
+        //   // print(counter);
+        //   return counter;
+        // }
+      }
+    });
+    print(counter.length);
+    return counter.length;
+  }
+
   Widget buildItem(DocumentSnapshot document) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
-        Container(width: 70, child: Text(document.get('title'))),
+        Container(width: 100, child: Text(document.get('title'))),
         Text(document.get('zelina') ? "Yes" : "No"),
         Text(document.get('stephen') ? "Yes" : "No"),
         Text(document.get('winner')),
@@ -41,28 +66,7 @@ class _RecordScreenState extends State<RecordScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: Drawer(
-        child: ListView(
-          children: [
-            DrawerHeader(child: Text("hihi")),
-            ListTile(
-              leading: Icon(Icons.home),
-              title: Text('Home'),
-              onTap: () {
-                Navigator.push(
-                    context, MaterialPageRoute(builder: (_) => Home()));
-              },
-            ),
-            ListTile(
-                leading: Icon(Icons.move_to_inbox),
-                title: Text('Records'),
-                onTap: () {
-                  Navigator.push(context,
-                      MaterialPageRoute(builder: (_) => RecordScreen()));
-                }),
-          ],
-        ),
-      ),
+      drawer: MyDrawer(),
       appBar: AppBar(
         title: Text("Bet Records"),
         // leading: FlatButton(
@@ -71,16 +75,30 @@ class _RecordScreenState extends State<RecordScreen> {
       ),
       body: SafeArea(
           child: Container(
-        padding: EdgeInsets.all(10),
+        padding: EdgeInsets.fromLTRB(0, 0, 0, 10),
         child: ListView(
           children: [
+            // Container(
+            //   height: 30,
+            //   color: Colors.green[100],
+            //   child: Row(
+            //     mainAxisAlignment: MainAxisAlignment.spaceAround,
+            //     children: [
+            //       //TODO: counter for the bet wins
+            //       Text('Zelina: ' + countWin('Zelina').toString()),
+            //       Text('Stephen: ' + countWin('Stephen').toString())
+            //     ],
+            //   ),
+            // ),
+            SizedBox(height: 10),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 Container(
-                  width: 50,
+                  width: 60,
                   child: Text('Title'),
                 ),
+                SizedBox(width: 10),
                 Text('Zelina'),
                 Text('Stephen'),
                 Text('Winner'),
@@ -110,7 +128,7 @@ class _RecordScreenState extends State<RecordScreen> {
                       itemCount: snapshot.data.documents.length ?? 0);
                 }
               },
-            )
+            ),
           ],
         ),
       )),

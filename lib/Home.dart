@@ -1,4 +1,5 @@
 import 'package:bet_battle/Bet.dart';
+import 'package:bet_battle/MyDrawer.dart';
 import 'package:bet_battle/Records.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -78,24 +79,7 @@ class _HomeState extends State<Home> {
 
   @override
   void initState() {
-    counterS = countWin('Stephen');
-    counterZ = countWin('Zelina');
-    print(counterZ);
     super.initState();
-  }
-
-  int countWin(String name) {
-    var snapshots = FirebaseFirestore.instance.collection('bets').snapshots();
-    int counter = 0;
-    snapshots.forEach((snapshot) {
-      for (int i = 0; i < snapshot.docs.length; i++) {
-        // snapshot.docs.forEach((element) {
-        print(snapshot.docs[i].data().values.elementAt(1));
-        if (snapshot.docs[i].data().values.elementAt(1) == name) ++counter;
-        if (i == snapshot.docs.length - 1) return counter;
-      }
-    });
-    return counter;
   }
 
   Widget buildItem(BuildContext context, DocumentSnapshot document, int index) {
@@ -161,28 +145,7 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: Drawer(
-        child: ListView(
-          children: [
-            DrawerHeader(child: Text("hihi")),
-            ListTile(
-              leading: Icon(Icons.home),
-              title: Text('Home'),
-              onTap: () {
-                Navigator.push(
-                    context, MaterialPageRoute(builder: (_) => Home()));
-              },
-            ),
-            ListTile(
-                leading: Icon(Icons.move_to_inbox),
-                title: Text('Records'),
-                onTap: () {
-                  Navigator.push(context,
-                      MaterialPageRoute(builder: (_) => RecordScreen()));
-                }),
-          ],
-        ),
-      ),
+      drawer: MyDrawer(),
       appBar: AppBar(
         title: Text("Bet details"),
         // leading: FlatButton(
@@ -260,25 +223,13 @@ class _HomeState extends State<Home> {
                   thickness: 2,
                   height: 1,
                 ),
-                Container(
-                  height: 30,
-                  color: Colors.green[100],
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      //TODO: counter for the bet wins
-                      Text('Zelina: '),
-                      Text('Stephen: ')
-                    ],
-                  ),
-                ),
                 Row(
                   children: [
                     Expanded(
                       flex: 3,
                       child: Container(
                         color: color,
-                        padding: EdgeInsets.all(10),
+                        padding: EdgeInsets.fromLTRB(10, 10, 10, 20),
                         child: Column(
                           children: [
                             Text('Bet Title'),
