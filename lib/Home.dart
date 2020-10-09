@@ -1,3 +1,4 @@
+import 'package:bet_battle/About.dart';
 import 'package:bet_battle/Bet.dart';
 import 'package:bet_battle/MyDrawer.dart';
 import 'package:bet_battle/Records.dart';
@@ -80,6 +81,7 @@ class _HomeState extends State<Home> {
   @override
   void initState() {
     super.initState();
+    _pageController = PageController();
   }
 
   Widget buildItem(BuildContext context, DocumentSnapshot document, int index) {
@@ -142,12 +144,45 @@ class _HomeState extends State<Home> {
     );
   }
 
+  int selectedIndex = 0;
+  PageController _pageController;
+  void onItemTapped(int index) {
+    setState(() {
+      selectedIndex = index;
+    });
+    switch (index) {
+      case 0:
+        Navigator.push(context, MaterialPageRoute(builder: (_) => Home()));
+        break;
+      case 1:
+        Navigator.push(
+            context, MaterialPageRoute(builder: (_) => RecordScreen()));
+        break;
+      case 2:
+        Navigator.push(
+            context, MaterialPageRoute(builder: (_) => AboutScreen()));
+        break;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: MyDrawer(),
+      // drawer: MyDrawer(),
+      // bottomNavigationBar: BottomNavigationBar(
+      //   items: [
+      //     BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
+      //     BottomNavigationBarItem(
+      //         icon: Icon(Icons.move_to_inbox), label: "Records"),
+      //     BottomNavigationBarItem(icon: Icon(Icons.info), label: "About"),
+      //   ],
+      //   currentIndex: selectedIndex,
+      //   fixedColor: Theme.of(context).primaryColor,
+      //   onTap: onItemTapped,
+      // ),
       appBar: AppBar(
         title: Text("Bet details"),
+        automaticallyImplyLeading: false,
         // leading: FlatButton(
         //   child: Icon(Icons.add),
         // )
@@ -159,7 +194,7 @@ class _HomeState extends State<Home> {
               children: [
                 Container(
                     padding: EdgeInsets.all(10),
-                    height: MediaQuery.of(context).size.height - 380,
+                    height: MediaQuery.of(context).size.height - 400,
                     child: Column(
                       children: [
                         Row(

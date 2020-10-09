@@ -1,7 +1,9 @@
 import 'package:bet_battle/MyDrawer.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 
+import 'About.dart';
 import 'Home.dart';
 
 class RecordScreen extends StatefulWidget {
@@ -23,6 +25,7 @@ class _RecordScreenState extends State<RecordScreen> {
   @override
   void initState() {
     print(countWin('Zelina'));
+    _pageController = PageController();
   }
 
   int countWin(String name) {
@@ -44,31 +47,87 @@ class _RecordScreenState extends State<RecordScreen> {
     return counter.length;
   }
 
+  Future _deleteData(DocumentSnapshot documentSnapshot) async {
+    FirebaseFirestore.instance
+        .collection('records')
+        .doc(documentSnapshot.id)
+        .delete();
+  }
+
   Widget buildItem(DocumentSnapshot document) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: [
-        Container(width: 100, child: Text(document.get('title'))),
-        Text(document.get('zelina') ? "Yes" : "No"),
-        Text(document.get('stephen') ? "Yes" : "No"),
-        Text(document.get('winner')),
-        Checkbox(
-            value: document.get('paid'),
-            onChanged: (bool newValue) {
-              setState(() {
-                _updateRecord(document, newValue);
-              });
-            })
+    bool _isEnabled = !document.get('paid');
+    return Slidable(
+      actionPane: SlidableDrawerActionPane(),
+      actionExtentRatio: 0.25,
+      secondaryActions: [
+        IconSlideAction(
+          caption: 'Delete',
+          color: Colors.red,
+          icon: Icons.delete,
+          onTap: () => _deleteData(document),
+        )
       ],
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          Container(width: 100, child: Text(document.get('title'))),
+          Text(document.get('zelina') ? "Yes" : "No"),
+          Text(document.get('stephen') ? "Yes" : "No"),
+          Text(document.get('winner')),
+          Checkbox(
+              value: document.get('paid'),
+              onChanged: _isEnabled
+                  ? (bool newValue) {
+                      setState(() {
+                        _updateRecord(document, newValue);
+                        _isEnabled = false;
+                      });
+                    }
+                  : null)
+        ],
+      ),
     );
+  }
+
+  int selectedIndex = 1;
+  PageController _pageController;
+  void onItemTapped(int index) {
+    setState(() {
+      selectedIndex = index;
+    });
+    switch (index) {
+      case 0:
+        Navigator.push(context, MaterialPageRoute(builder: (_) => Home()));
+        break;
+      case 1:
+        Navigator.push(
+            context, MaterialPageRoute(builder: (_) => RecordScreen()));
+        break;
+      case 2:
+        Navigator.push(
+            context, MaterialPageRoute(builder: (_) => AboutScreen()));
+        break;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: MyDrawer(),
+      // drawer: MyDrawer(),
+      // bottomNavigationBar: BottomNavigationBar(
+      //   items: [
+      //     BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
+      //     BottomNavigationBarItem(
+      //         icon: Icon(Icons.move_to_inbox), label: "Records"),
+      //     BottomNavigationBarItem(icon: Icon(Icons.info), label: "About"),
+      //   ],
+      //   currentIndex: selectedIndex,
+      //   fixedColor: Theme.of(context).primaryColor,
+      //   onTap: onItemTapped,
+      // ),
       appBar: AppBar(
         title: Text("Bet Records"),
+        automaticallyImplyLeading: false,
         // leading: FlatButton(
         //   child: Icon(Icons.add),
         // )
