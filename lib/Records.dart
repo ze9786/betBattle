@@ -133,64 +133,60 @@ class _RecordScreenState extends State<RecordScreen> {
         // )
       ),
       body: SafeArea(
-          child: Container(
-        padding: EdgeInsets.fromLTRB(0, 0, 0, 10),
-        child: ListView(
+          child: Column(children: [
+        Stack(
           children: [
-            // Container(
-            //   height: 30,
-            //   color: Colors.green[100],
-            //   child: Row(
-            //     mainAxisAlignment: MainAxisAlignment.spaceAround,
-            //     children: [
-            //       //TODO: counter for the bet wins
-            //       Text('Zelina: ' + countWin('Zelina').toString()),
-            //       Text('Stephen: ' + countWin('Stephen').toString())
-            //     ],
-            //   ),
-            // ),
-            SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                Container(
-                  width: 60,
-                  child: Text('Title'),
-                ),
-                SizedBox(width: 10),
-                Text('Zelina'),
-                Text('Stephen'),
-                Text('Winner'),
-                Text('Paid?')
-              ],
-            ),
-            Divider(
-              thickness: 2,
-            ),
-            StreamBuilder(
-              stream:
-                  FirebaseFirestore.instance.collection('records').snapshots(),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) {
-                  return Center(
-                    child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                          Theme.of(context).primaryColor),
-                    ),
-                  );
-                } else {
-                  return ListView.separated(
-                      shrinkWrap: true,
-                      itemBuilder: (context, index) =>
-                          buildItem(snapshot.data.documents[index]),
-                      separatorBuilder: (context, int) => Divider(),
-                      itemCount: snapshot.data.documents.length ?? 0);
-                }
-              },
+            Container(
+              child: Column(
+                children: [
+                  SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      Container(
+                        width: 60,
+                        child: Text('Title'),
+                      ),
+                      SizedBox(width: 10),
+                      Text('Zelina'),
+                      Text('Stephen'),
+                      Text('Winner'),
+                      Text('Paid?')
+                    ],
+                  ),
+                  Divider(
+                    thickness: 2,
+                  ),
+                ],
+              ),
             ),
           ],
         ),
-      )),
+        Expanded(
+          child: StreamBuilder(
+            stream:
+                FirebaseFirestore.instance.collection('records').snapshots(),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) {
+                return Center(
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                        Theme.of(context).primaryColor),
+                  ),
+                );
+              } else {
+                return ListView.separated(
+                    shrinkWrap: true,
+                    itemBuilder: (context, index) =>
+                        buildItem(snapshot.data.documents[index]),
+                    separatorBuilder: (context, int) => Divider(),
+                    itemCount: snapshot.data.documents.length ?? 0);
+              }
+            },
+          ),
+        ),
+        SizedBox(height: 3)
+      ])),
     );
   }
 }
