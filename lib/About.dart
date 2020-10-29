@@ -62,7 +62,7 @@ class _AboutScreenState extends State<AboutScreen> {
           children: [
             Text("Bet with your friends"),
             Text("2020, Product of Zelina To"),
-            Text("Version number: v1.4.0"),
+            Text("Version number: v1.4.1"),
           ],
         )),
       ),

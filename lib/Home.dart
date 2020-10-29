@@ -4,6 +4,7 @@ import 'package:bet_battle/MyDrawer.dart';
 import 'package:bet_battle/Records.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -189,12 +190,13 @@ class _HomeState extends State<Home> {
       ),
       body: SafeArea(
         child: ListView(
+          physics: NeverScrollableScrollPhysics(),
           children: [
             Column(
               children: [
                 Container(
                     padding: EdgeInsets.all(10),
-                    height: MediaQuery.of(context).size.height - 400,
+                    height: 400,
                     child: Column(
                       children: [
                         Row(
@@ -259,6 +261,7 @@ class _HomeState extends State<Home> {
                   height: 1,
                 ),
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Expanded(
                       flex: 3,
@@ -344,6 +347,8 @@ class _HomeState extends State<Home> {
                           setState(() {
                             if (title == '')
                               _showDialog();
+                            else if (dropdownValueS == dropdownValueZ)
+                              _showSameDialog();
                             else {
                               bets.add(Bet(
                                   title: title,
@@ -386,6 +391,29 @@ class _HomeState extends State<Home> {
         return AlertDialog(
           title: new Text("Error🤓"),
           content: new Text("You need to type the title of bet!!!🤪"),
+          actions: <Widget>[
+            // usually buttons at the bottom of the dialog
+            new FlatButton(
+              child: new Text("Close"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showSameDialog() {
+    // flutter defined function
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        // return object of type Dialog
+        return AlertDialog(
+          title: new Text("Error🤓"),
+          content: new Text("Both of you cannot bet the same thing!!😡"),
           actions: <Widget>[
             // usually buttons at the bottom of the dialog
             new FlatButton(
